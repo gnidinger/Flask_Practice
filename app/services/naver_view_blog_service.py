@@ -3,11 +3,12 @@ from dotenv import load_dotenv
 from typing import List
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from keyword_search_service import KeywordSearchService
-from config.webdriver_config import setup_chrome_driver
+from .keyword_search_service import KeywordSearchService
+from ..config.webdriver_config import setup_chrome_driver
 import app.config as config
+from flask import current_app
 
-driver = setup_chrome_driver()
+# driver = setup_chrome_driver()
 
 load_dotenv()
 
@@ -17,30 +18,34 @@ class CommonKeywordResponse:
         self.blogId = blog_id
         self.publishDate = publish_date
 
+    def to_dict(self):
+        return {"blogId": self.blogId, "publishDate": self.publishDate}
+
 
 class NaverViewBlogService(KeywordSearchService):
     def __init__(self):
-        self.baseUrl = config.NAVER_VIEW_BLOG_BASE_URL
+        self.driver = setup_chrome_driver()  # 여기에 추가
+        self.baseUrl = current_app.config["NAVER_VIEW_BLOG_BASE_URL"]
         self.view_classes = {
             "view": {
-                "class": config.NAVER_VIEW_BLOG_VIEW_CLASS,
-                "idClass": config.NAVER_VIEW_BLOG_VIEW_ID_CLASS,
-                "dateClass": config.NAVER_VIEW_BLOG_VIEW_DATE_CLASS,
+                "class": current_app.config["NAVER_VIEW_BLOG_VIEW_CLASS"],
+                "idClass": current_app.config["NAVER_VIEW_BLOG_VIEW_ID_CLASS"],
+                "dateClass": current_app.config["NAVER_VIEW_BLOG_VIEW_DATE_CLASS"],
             },
             "influencer": {
-                "class": config.NAVER_VIEW_BLOG_INFLUENCER_CLASS,
-                "idClass": config.NAVER_VIEW_BLOG_INFLUENCER_ID_CLASS,
-                "dateClass": config.NAVER_VIEW_BLOG_INFLUENCER_DATE_CLASS,
+                "class": current_app.config["NAVER_VIEW_BLOG_INFLUENCER_CLASS"],
+                "idClass": current_app.config["NAVER_VIEW_BLOG_INFLUENCER_ID_CLASS"],
+                "dateClass": current_app.config["NAVER_VIEW_BLOG_INFLUENCER_DATE_CLASS"],
             },
             "other": {
-                "class": config.NAVER_VIEW_BLOG_OTHER_CLASS,
-                "idClass": config.NAVER_VIEW_BLOG_OTHER_ID_CLASS,
-                "dateClass": config.NAVER_VIEW_BLOG_OTHER_DATE_CLASS,
+                "class": current_app.config["NAVER_VIEW_BLOG_OTHER_CLASS"],
+                "idClass": current_app.config["NAVER_VIEW_BLOG_OTHER_ID_CLASS"],
+                "dateClass": current_app.config["NAVER_VIEW_BLOG_OTHER_DATE_CLASS"],
             },
         }
 
     def get_list(self, query: str) -> List[CommonKeywordResponse]:
-        driver.get(self.baseUrl + query)
+        self.driver.get(self.baseUrl + query)
         responses = []
         for _, view_class in self.view_classes.items():
             responses.extend(
@@ -53,7 +58,7 @@ class NaverViewBlogService(KeywordSearchService):
     def get_detail(
         self, query: str, parent_class: str, id_class: str, date_class: str
     ) -> List[CommonKeywordResponse]:
-        parent_elements = driver.find_elements(By.CSS_SELECTOR, parent_class)
+        parent_elements = self.driver.find_elements(By.CSS_SELECTOR, parent_class)
         responses = []
         for parent_element in parent_elements:
             id_element = parent_element.find_element(By.CSS_SELECTOR, id_class)
@@ -87,7 +92,7 @@ def main(query: str):
         for response in responses:
             print(f"Blog ID: {response.blogId}, Publish Date: {response.publishDate}")
     finally:
-        driver.quit()
+        naver_view_blog_service.driver.quit()
 
 
 if __name__ == "__main__":

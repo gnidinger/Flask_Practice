@@ -1,14 +1,11 @@
-from flask import Flask, Blueprint
+from flask import Flask
+from .controllers.naver_crawling_controller import configure_routes
 
 
 def create_app():
     app = Flask(__name__)
-    api = Blueprint("api", __name__, url_prefix="/api")
+    app.config.from_object("app.config.config")
 
-    @app.route("/")
-    def home():
-        return "Hello, World!"
-
-    app.register_blueprint(api)
+    configure_routes(app)
 
     return app
