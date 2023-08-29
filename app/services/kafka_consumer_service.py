@@ -24,8 +24,9 @@ def kafka_consumer():
                 print(msg.error())
                 break
 
+        msg_key = msg.key().decode("utf-8") if msg.key() else "None"
         msg_value = msg.value().decode("utf-8")
-        print(f"Received: {msg_value}")
+        print(f"Received: key={msg_key}, value={msg_value}")
 
         try:
             prefix, numbers_str = msg_value.split(":")
