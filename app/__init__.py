@@ -10,7 +10,7 @@ def create_app():
 
     configure_routes(app)
 
-    kafka_thread = threading.Thread(target=kafka_consumer)
+    kafka_thread = threading.Thread(target=kafka_consumer, args=(app,))
     kafka_thread.start()
 
     return app

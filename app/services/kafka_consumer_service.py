@@ -49,7 +49,7 @@ from confluent_kafka import Consumer, KafkaError
 from .naver_tab_service import main
 
 
-def kafka_consumer():
+def kafka_consumer(app):
     config = {
         "bootstrap.servers": "localhost:9092",
         "group.id": "my-group",
@@ -57,7 +57,7 @@ def kafka_consumer():
     }
 
     consumer = Consumer(config)
-    consumer.subscribe(["test"])
+    consumer.subscribe(["test-topic"])
 
     while True:
         msg = consumer.poll(1)
@@ -80,7 +80,8 @@ def kafka_consumer():
             prefix, query = msg_value.split(":", 1)
             if prefix == "INPUT":
                 # Selenium 로직 실행
-                main(query)
+                with app.app_context():
+                    main(query)
             elif prefix == "OUTPUT":
                 print(f"Received output: {query}")
             else:
