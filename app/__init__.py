@@ -1,6 +1,6 @@
 from flask import Flask
 from .controllers.naver_crawling_controller import configure_routes
-from .services.kafka_consumer_service import kafka_consumer
+from .services.kafka_topic1_service import kafka_topic_1
 import threading
 
 
@@ -10,7 +10,7 @@ def create_app():
 
     configure_routes(app)
 
-    kafka_thread = threading.Thread(target=kafka_consumer, args=(app,))
+    kafka_thread = threading.Thread(target=kafka_topic_1, args=(app,))
     kafka_thread.start()
 
     return app

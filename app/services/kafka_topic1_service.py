@@ -2,7 +2,7 @@ from confluent_kafka import Consumer, KafkaError
 from .naver_tab_service import main
 
 
-def kafka_consumer(app):
+def kafka_topic_1(app):
     config = {
         "bootstrap.servers": "localhost:9092",
         "group.id": "my-group",
