@@ -1,16 +1,28 @@
-from confluent_kafka import Consumer, KafkaError
+from confluent_kafka import Consumer, Producer, KafkaError
 from .naver_tab_service import main
+import json
 
 
 def kafka_topic_1(app):
-    config = {
+    consumer_config = {
         "bootstrap.servers": "localhost:9092",
         "group.id": "my-group",
         "auto.offset.reset": "earliest",
     }
+    producer_config = {
+        "bootstrap.servers": "localhost:9092",
+    }
 
-    consumer = Consumer(config)
+    consumer = Consumer(consumer_config)
+    producer = Producer(producer_config)
+
     consumer.subscribe(["test-topic"])
+
+    def delivery_report(err, msg):
+        if err is not None:
+            print(f"Message delivery failed: {err}")
+        else:
+            print(f"Message delivered to {msg.topic()}")
 
     while True:
         msg = consumer.poll(1)
@@ -34,7 +46,12 @@ def kafka_topic_1(app):
             if prefix == "INPUT":
                 # Selenium 로직 실행
                 with app.app_context():
-                    main(query)
+                    result = main(query)
+                    result_str = json.dumps(result)
+                    producer.produce(
+                        "topic2", key=msg_key, value=result_str, callback=delivery_report
+                    )
+                    producer.flush()
             elif prefix == "OUTPUT":
                 print(f"Received output: {query}")
             else:

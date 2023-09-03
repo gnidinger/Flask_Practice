@@ -46,6 +46,7 @@ def main(query: str):
     try:
         result = naver_tab_service.get_list(query)
         print(result)
+        return result
     finally:
         naver_tab_service.driver.quit()
 
