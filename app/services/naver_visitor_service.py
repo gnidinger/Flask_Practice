@@ -55,6 +55,7 @@ def main(query: str):
     try:
         result = naver_visitor_service.get_list(query)
         print(result)
+        return result
     finally:
         naver_visitor_service.driver.quit()
 

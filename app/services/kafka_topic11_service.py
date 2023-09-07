@@ -3,7 +3,7 @@ from .naver_tab_service import main
 import json
 
 
-def kafka_topic_1(app):
+def kafka_topic_11(app):
     consumer_config = {
         "bootstrap.servers": "localhost:9092",
         "group.id": "my-group",
@@ -16,7 +16,7 @@ def kafka_topic_1(app):
     consumer = Consumer(consumer_config)
     producer = Producer(producer_config)
 
-    consumer.subscribe(["test-topic"])
+    consumer.subscribe(["topicA11"])
 
     def delivery_report(err, msg):
         if err is not None:
@@ -49,11 +49,9 @@ def kafka_topic_1(app):
                     result = main(query)
                     result_str = json.dumps(result)
                     producer.produce(
-                        "topic2", key=msg_key, value=result_str, callback=delivery_report
+                        "topicA12", key=msg_key, value=result_str, callback=delivery_report
                     )
                     producer.flush()
-            elif prefix == "OUTPUT":
-                print(f"Received output: {query}")
             else:
                 print("Invalid prefix")
         except ValueError:

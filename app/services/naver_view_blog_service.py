@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 from typing import List
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from .keyword_search_service import KeywordSearchService
 from ..config.webdriver_config import setup_chrome_driver
 import app.config as config
@@ -46,6 +48,10 @@ class NaverViewBlogService(KeywordSearchService):
 
     def get_list(self, query: str) -> List[CommonKeywordResponse]:
         self.driver.get(self.baseUrl + query)
+
+        # wait = WebDriverWait(self.driver, 5)
+        # wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.total_sub")))
+
         responses = []
         for _, view_class in self.view_classes.items():
             responses.extend(
@@ -91,6 +97,7 @@ def main(query: str):
         responses = naver_view_blog_service.get_list(query)
         for response in responses:
             print(f"Blog ID: {response.blogId}, Publish Date: {response.publishDate}")
+        return responses
     finally:
         naver_view_blog_service.driver.quit()
 
