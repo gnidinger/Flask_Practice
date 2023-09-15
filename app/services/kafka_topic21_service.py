@@ -1,20 +1,43 @@
 from confluent_kafka import Consumer, Producer, KafkaError
-from .naver_view_blog_service import main
+from confluent_kafka.avro import AvroConsumer, AvroProducer
+from confluent_kafka.avro.serializer import SerializerError
+from avro.schema import parse
 import json
+import uuid
+from .naver_view_blog_service import main
 
 
 def kafka_topic_21(app):
     consumer_config = {
-        "bootstrap.servers": "localhost:9092",
+        "bootstrap.servers": "localhost:19092",
         "group.id": "my-group",
         "auto.offset.reset": "earliest",
-    }
-    producer_config = {
-        "bootstrap.servers": "localhost:9092",
+        "schema.registry.url": "http://127.0.0.1:8081",
     }
 
-    consumer = Consumer(consumer_config)
-    producer = Producer(producer_config)
+    value_schema = parse(
+        open(
+            "/Users/gnimom/Documents/Personal/Flask_Practice/app/services/NaverCrawlingSchema.avsc",
+            "rb",
+        ).read()
+    )
+
+    key_schema = parse(
+        open(
+            "/Users/gnimom/Documents/Personal/Flask_Practice/app/services/UUIDKeySchema.avsc",
+            "rb",
+        ).read()
+    )
+
+    producer_config = {
+        "bootstrap.servers": "localhost:19092",
+        "schema.registry.url": "http://127.0.0.1:8081",
+    }
+
+    consumer = AvroConsumer(consumer_config)
+    producer = AvroProducer(
+        producer_config, default_key_schema=key_schema, default_value_schema=value_schema
+    )
 
     consumer.subscribe(["topicA21"])
 
@@ -37,27 +60,39 @@ def kafka_topic_21(app):
                 print(msg.error())
                 break
 
-        msg_key = msg.key().decode("utf-8") if msg.key() else "None"
-        msg_value = msg.value().decode("utf-8")
-        print(f"Received: key={msg_key}, value={msg_value}")
+        msg_key = msg.key() if msg.key() else "None"
+        msg_value = msg.value()
 
-        try:
-            prefix, query = msg_value.split(":", 1)
-            if prefix == "INPUT":
-                # Selenium 로직 실행
-                with app.app_context():
-                    result = main(query)
-                    result_dict_list = [r.to_dict() for r in result]
-                    result_str = json.dumps(result_dict_list)
-                    # result_str = json.dumps(result)
-                    producer.produce(
-                        "topicA22", key=msg_key, value=result_str, callback=delivery_report
-                    )
-                    producer.flush()
-            else:
-                print("Invalid prefix")
-        except ValueError:
-            print("Invalid message format")
+        parentId = msg_value.get("uniqueId")
+        new_uniqueId = str(uuid.uuid4())
+
+        query = msg_value["message"]
+
+        with app.app_context():
+            result_view_blog = main(query)
+
+            filtered_results = []
+
+            if result_view_blog:
+                for response in result_view_blog:
+                    # '?' 문자가 들어있는 블로그 ID는 무시
+                    if "?" in response.blogId:
+                        continue
+                    filtered_results.append(response)
+
+            result_view_blog_str = json.dumps([response.to_dict() for response in filtered_results])
+
+            if filtered_results:  # 결과가 빈 리스트가 아니면 Kafka로 메시지를 전송
+                new_message = {
+                    "parentId": parentId,
+                    "uniqueId": new_uniqueId,
+                    "message": result_view_blog_str,
+                }
+
+                producer.produce(
+                    topic="topicA22", key=new_uniqueId, value=new_message, callback=delivery_report
+                )
+        producer.flush()
 
     consumer.close()
 
