@@ -10,7 +10,7 @@ from .naver_visitor_service import main
 def kafka_topic_31(app):
     consumer_config = {
         "bootstrap.servers": "localhost:19092",
-        "group.id": "my-group",
+        "group.id": "copykle-group",
         "auto.offset.reset": "earliest",
         "schema.registry.url": "http://127.0.0.1:8081",
     }

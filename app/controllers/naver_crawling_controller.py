@@ -1,6 +1,13 @@
 import json
 from flask import request, jsonify, Response
-from ..services import NaverTabService, NaverViewBlogService, NaverVisitorService
+from ..services import (
+    NaverTabService,
+    NaverViewBlogService,
+    NaverVisitorService,
+    KeywordService,
+    KeywordShoppingService,
+    KeywordGoogleService,
+)
 
 
 def complex_handler(obj):
@@ -15,6 +22,9 @@ def configure_routes(app):
             "naver_tab": NaverTabService,
             "naver_view_blog": NaverViewBlogService,
             "naver_visitor": NaverVisitorService,
+            "keyword_service": KeywordService,
+            "keyword_shopping_service": KeywordShoppingService,
+            "keyword_google_service": KeywordGoogleService,
         }
         strategy_cls = strategies.get(strategy_type)
         if not strategy_cls:
