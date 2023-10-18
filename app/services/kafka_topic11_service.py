@@ -68,6 +68,8 @@ def kafka_topic_11(app):
 
         query = msg_value["message"]
 
+        print(query)
+
         with app.app_context():
             result_tabs = main(query)
 

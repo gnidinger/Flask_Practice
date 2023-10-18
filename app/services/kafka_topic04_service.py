@@ -64,41 +64,45 @@ def kafka_topic_04(app):
         msg_value = msg.value()
         print(f"Received: key={msg_key}, value={msg_value}")
 
-        message_content = json.loads(msg_value.get("message", "{}"))  # message 필드를 파싱
-        blogId = message_content.get("blogId")  # message 내의 blogId를 가져옴
-        publishDate = message_content.get("publishDate")
-        print(blogId, publishDate)
+        message_content = json.loads(msg_value.get("message", "[]"))  # message 필드를 파싱, 기본값은 빈 리스트
+        for item in message_content:
+            blogId = item.get("blogId")  # 각 요소의 blogId를 가져옴
+            publishDate = item.get("publishDate")
+            print(blogId, publishDate)
 
-        parentId = msg_value.get("uniqueId")
-        new_uniqueId = str(uuid.uuid4())
+            parentId = msg_value.get("uniqueId")
+            new_uniqueId = str(uuid.uuid4())
 
-        if blogId:
-            with app.app_context():
-                # main 함수를 실행하고 결과를 받음
-                result_tabs = main(blogId)
+            if blogId:
+                with app.app_context():
+                    # main 함수를 실행하고 결과를 받음
+                    result_tabs = main(blogId)
 
-                # 결과가 빈 배열이라면 무시하고 계속
-                if len(result_tabs) == 0:
-                    continue
+                    # 결과가 빈 배열이라면 무시하고 계속
+                    if len(result_tabs) == 0:
+                        continue
 
-                # 결과를 JSON 문자열로 변환
-                result_tabs_json = json.dumps(result_tabs, ensure_ascii=False)
+                    # 결과를 JSON 문자열로 변환
+                    result_tabs_json = json.dumps(result_tabs, ensure_ascii=False)
 
-                # 새로운 메시지 생성
-                new_message = {
-                    "parentId": parentId,
-                    "uniqueId": new_uniqueId,
-                    "message": result_tabs_json,
-                }
+                    # 새로운 메시지 생성
+                    new_message = {
+                        "parentId": parentId,
+                        "uniqueId": new_uniqueId,
+                        "message": result_tabs_json,
+                    }
 
-                # 새로운 토픽에 메시지를 produce 함
-                producer.produce(
-                    topic="topicA05", key=new_uniqueId, value=new_message, callback=delivery_report
-                )
-                producer.flush()
+                    # 새로운 토픽에 메시지를 produce 함
+                    producer.produce(
+                        topic="topicA05",
+                        key=new_uniqueId,
+                        value=new_message,
+                        callback=delivery_report,
+                    )
+                    producer.flush()
 
     consumer.close()
 
 
 if __name__ == "__main__":
-    kafka_consumer()
+    kafka_topic_04()

@@ -8,6 +8,7 @@ from .keyword_google_service import KeywordGoogleService
 from .kafka_topic01_service import kafka_topic_01
 from .kafka_topic02_service import kafka_topic_02
 from .kafka_topic03_service import kafka_topic_03
+
 from .kafka_topic04_service import kafka_topic_04
 from .kafka_topic11_service import kafka_topic_11
 from .kafka_topic21_service import kafka_topic_21
