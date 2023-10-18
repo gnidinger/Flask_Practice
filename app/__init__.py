@@ -2,6 +2,7 @@ from flask import Flask
 from .controllers.naver_crawling_controller import configure_routes
 from .services.kafka_topic01_service import kafka_topic_01
 from .services.kafka_topic02_service import kafka_topic_02
+from .services.kafka_topic03_service import kafka_topic_03
 from .services.kafka_topic11_service import kafka_topic_11
 from .services.kafka_topic21_service import kafka_topic_21
 from .services.kafka_topic31_service import kafka_topic_31
@@ -18,6 +19,9 @@ def create_app():
     kafka_thread.start()
 
     kafka_thread = threading.Thread(target=kafka_topic_02, args=(app,))
+    kafka_thread.start()
+
+    kafka_thread = threading.Thread(target=kafka_topic_03, args=(app,))
     kafka_thread.start()
 
     kafka_thread = threading.Thread(target=kafka_topic_11, args=(app,))
