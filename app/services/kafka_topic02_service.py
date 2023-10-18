@@ -64,11 +64,12 @@ def kafka_topic_02(app):
         msg_value = msg.value()
 
         parentId = msg_value.get("uniqueId")
-        new_uniqueId = str(uuid.uuid4())
 
         queries = json.loads(msg_value["message"])
 
         for query in queries:
+            new_uniqueId = str(uuid.uuid4())
+
             with app.app_context():
                 result_tabs = main(query)
 
