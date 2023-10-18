@@ -67,10 +67,14 @@ def kafka_topic_03(app):
         new_uniqueId = str(uuid.uuid4())
 
         query = msg_value["message"]
-        tabs = json.loads(query)["tabs"]
+
+        try:
+            tabs = json.loads(query)["tabs"]
+        except (json.JSONDecodeError, KeyError):
+            tabs = []  # "tabs" 키가 없거나 JSON 디코딩 오류 시 빈 리스트로 처리
 
         with app.app_context():
-            for tab in tabs.split(","):
+            for tab in tabs:
                 result_view_blog = main(tab.strip())  # 각 탭을 공백 제거 후 호출
 
                 filtered_results = []
@@ -94,7 +98,7 @@ def kafka_topic_03(app):
                     }
 
                     producer.produce(
-                        topic="topicA22",
+                        topic="topicA04",
                         key=new_uniqueId,
                         value=new_message,
                         callback=delivery_report,
