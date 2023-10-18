@@ -40,6 +40,10 @@ class NaverTabService(KeywordSearchService):
     def reason_empty(text):
         return text.replace("이 정보가 표시된 이유", "")
 
+    def __del__(self):
+        if self.driver:
+            self.driver.quit()
+
 
 def main(query: str):
     naver_tab_service = NaverTabService()
@@ -47,8 +51,8 @@ def main(query: str):
         result = naver_tab_service.get_list(query)
         print(result)
         return result
-    finally:
-        naver_tab_service.driver.quit()
+    except Exception as e:
+        print(e)
 
 
 if __name__ == "__main__":

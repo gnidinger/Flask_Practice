@@ -43,7 +43,13 @@ class KeywordShoppingService:
 
         except Exception as e:
             print(e)
-        finally:
+
+    @staticmethod
+    def reason_empty(text):
+        return text.replace("이 정보가 표시된 이유", "")
+
+    def __del__(self):
+        if self.driver:
             self.driver.quit()
 
 

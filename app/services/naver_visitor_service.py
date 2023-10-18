@@ -7,14 +7,13 @@ from .keyword_search_service import KeywordSearchService
 from ..config.webdriver_config import setup_chrome_driver
 import app.config as config
 from flask import current_app
+from typing import List, Optional
 
-
-# driver = setup_chrome_driver()
 
 load_dotenv()
 
 
-class NaverVisitorService(KeywordSearchService):
+class NaverVisitorService:
     def __init__(self):
         self.driver = setup_chrome_driver()
 
@@ -23,7 +22,7 @@ class NaverVisitorService(KeywordSearchService):
             self.target = current_app.config["NAVER_VISITOR_TARGET"]
             self.attr = current_app.config["NAVER_VISITOR_TARGET_ATTR"]
 
-    def get_list(self, query):
+    def get_list(self, query: str) -> Optional[List[str]]:
         self.driver.get(self.base_url + query)
 
         try:
@@ -45,6 +44,10 @@ class NaverVisitorService(KeywordSearchService):
             print(e)
             return []
 
+    def __del__(self):
+        if self.driver:
+            self.driver.quit()
+
     @staticmethod
     def blank_empty(text):
         return text if text else ""
@@ -56,8 +59,8 @@ def main(query: str):
         result = naver_visitor_service.get_list(query)
         print(result)
         return result
-    finally:
-        naver_visitor_service.driver.quit()
+    except Exception as e:
+        print(e)
 
 
 if __name__ == "__main__":

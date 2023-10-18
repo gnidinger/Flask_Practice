@@ -5,6 +5,8 @@ from .keyword_service import KeywordService
 from .keyword_shopping_service import KeywordShoppingService
 from .keyword_google_service import KeywordGoogleService
 
+from .kafka_topic01_service import kafka_topic_01
+from .kafka_topic02_service import kafka_topic_02
 from .kafka_topic11_service import kafka_topic_11
 from .kafka_topic21_service import kafka_topic_21
 from .kafka_topic31_service import kafka_topic_31
