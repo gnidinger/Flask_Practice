@@ -66,6 +66,8 @@ def kafka_topic_03(app):
         parentId = msg_value.get("uniqueId")
         query = msg_value["message"]  # 메시지를 query 변수에 할당
 
+        print("check point 3: " + query)
+
         new_uniqueId = str(uuid.uuid4())
 
         with app.app_context():

@@ -72,35 +72,54 @@ def kafka_topic_01(app):
         query = msg_value["message"]
 
         print("check point 1: " + query)
+        print(f"Type of 'query': {type(query)}")
 
-        with app.app_context():
-            keyword_list = keyword_main(query)
-            keyword_shopping_list = keyword_shopping_main(query)
-            keyword_google = keyword_google_main(query)
-            result = (
-                (query or "")
-                + (keyword_list or "")
-                + (keyword_shopping_list or "")
-                + (keyword_google or "")
-            )
+        # 문자열이 None이거나 빈 문자열인 경우 넘어감
+        if query is None or query.strip() == "":
+            continue
 
-            print("check point 2: " + result)
+        # 문자열을 쉼표로 분리하고 각 요소에 대해 공백을 제거한 후 처리
+        query_elements = [elem.strip() for elem in query.split(",")]
 
-            result_list_json = json.dumps(result, ensure_ascii=False)
+        result_list = []
 
-            new_message = {
-                "parentId": parentId,
-                "uniqueId": new_uniqueId,
-                "message": result_list_json,
-            }
+        for query_elem in query_elements:
+            with app.app_context():
+                keyword_list = keyword_main(query_elem)
+                keyword_shopping_list = keyword_shopping_main(query_elem)
+                keyword_google = keyword_google_main(query_elem)
 
-            producer.produce(
-                topic="topicA02", key=new_uniqueId, value=new_message, callback=delivery_report
-            )
-            producer.flush()
+                # 결과가 비어있지 않은 경우에만 추가
+                if keyword_list:
+                    result_list.append(f"{query_elem}, {', '.join(keyword_list)}")
+                if keyword_shopping_list:
+                    result_list.append(f"{query_elem}, {', '.join(keyword_shopping_list)}")
+                if keyword_google:
+                    result_list.append(f"{query_elem}, {', '.join(keyword_google)}")
+
+        # 리스트가 비어있지 않은 경우에만 결합
+        if result_list:
+            result = ", ".join(result_list)
+        else:
+            result = ""
+
+        print("check point 2: " + result)
+
+        result_list_json = json.dumps(result, ensure_ascii=False)
+
+        new_message = {
+            "parentId": parentId,
+            "uniqueId": new_uniqueId,
+            "message": result_list_json,
+        }
+
+        producer.produce(
+            topic="topicA02", key=new_uniqueId, value=new_message, callback=delivery_report
+        )
+        producer.flush()
 
     consumer.close()
 
 
 if __name__ == "__main__":
-    kafka_consumer()
+    kafka_topic_01()
