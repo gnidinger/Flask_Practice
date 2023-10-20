@@ -71,11 +71,20 @@ def kafka_topic_01(app):
 
         query = msg_value["message"]
 
+        print("check point 1: " + query)
+
         with app.app_context():
             keyword_list = keyword_main(query)
             keyword_shopping_list = keyword_shopping_main(query)
             keyword_google = keyword_google_main(query)
-            result = keyword_list + keyword_shopping_list + keyword_google
+            result = (
+                (query or "")
+                + (keyword_list or "")
+                + (keyword_shopping_list or "")
+                + (keyword_google or "")
+            )
+
+            print("check point 2: " + result)
 
             result_list_json = json.dumps(result, ensure_ascii=False)
 

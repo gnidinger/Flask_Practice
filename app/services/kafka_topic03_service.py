@@ -1,11 +1,10 @@
-from selenium.common.exceptions import NoSuchElementException
 from confluent_kafka import Consumer, Producer, KafkaError
 from confluent_kafka.avro import AvroConsumer, AvroProducer
 from confluent_kafka.avro.serializer import SerializerError
 from avro.schema import parse
 import json
 import uuid
-from .naver_view_blog_service import main
+from .naver_tab_service import main
 
 
 def kafka_topic_03(app):
@@ -65,55 +64,32 @@ def kafka_topic_03(app):
         msg_value = msg.value()
 
         parentId = msg_value.get("uniqueId")
+        query = msg_value["message"]  # 메시지를 query 변수에 할당
 
-        query = msg_value["message"]
-
-        try:
-            query_json = json.loads(query)
-            tabs = query_json.get("tabs", [])
-        except (json.JSONDecodeError, AttributeError):
-            tabs = []  # JSON 디코딩 오류 또는 "tabs" 키가 없는 경우 빈 리스트로 처리
+        new_uniqueId = str(uuid.uuid4())
 
         with app.app_context():
-            for tab in tabs:
-                new_uniqueId = str(uuid.uuid4())
+            result_tabs = main(query)
 
-                try:
-                    result_view_blog = main(tab.strip())  # 각 탭을 공백 제거 후 호출
+            if result_tabs is not None:
+                result_tabs_json = json.dumps(result_tabs, ensure_ascii=False)
 
-                    filtered_results = []
+                new_message = {
+                    "parentId": parentId,
+                    "uniqueId": new_uniqueId,
+                    "message": result_tabs_json,
+                }
 
-                    if result_view_blog:
-                        for response in result_view_blog:
-                            # '?' 문자가 들어있는 블로그 ID는 무시
-                            if "?" in response.blogId:
-                                continue
-                            filtered_results.append(response)
-
-                        if filtered_results:  # 결과가 빈 리스트가 아니면 Kafka로 메시지를 전송
-                            result_view_blog_str = json.dumps(
-                                [response.to_dict() for response in filtered_results]
-                            )
-
-                            new_message = {
-                                "parentId": parentId,
-                                "uniqueId": new_uniqueId,
-                                "message": result_view_blog_str,
-                            }
-
-                            producer.produce(
-                                topic="topicA04",
-                                key=new_uniqueId,
-                                value=new_message,
-                                callback=delivery_report,
-                            )
-                except NoSuchElementException:
-                    # 요소를 찾을 수 없는 경우 그냥 건너뛰기
-                    continue
-        producer.flush()
+                producer.produce(
+                    topic="topicA04",
+                    key=new_uniqueId,
+                    value=new_message,
+                    callback=delivery_report,
+                )
+                producer.flush()
 
     consumer.close()
 
 
 if __name__ == "__main__":
-    kafka_topic_03()
+    kafka_topic_02()
