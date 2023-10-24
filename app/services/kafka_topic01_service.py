@@ -71,9 +71,6 @@ def kafka_topic_01(app):
 
         query = msg_value["message"]
 
-        print("check point 1: " + query)
-        print(f"Type of 'query': {type(query)}")
-
         # 문자열이 None이거나 빈 문자열인 경우 넘어감
         if query is None or query.strip() == "":
             continue
@@ -102,8 +99,6 @@ def kafka_topic_01(app):
             result = ", ".join(result_list)
         else:
             result = ""
-
-        print("check point 2: " + result)
 
         result_list_json = json.dumps(result, ensure_ascii=False)
 

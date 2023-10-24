@@ -5,6 +5,7 @@ from avro.schema import parse
 import json
 import uuid
 from .naver_tab_service import main
+import re
 
 
 def kafka_topic_03(app):
@@ -64,9 +65,16 @@ def kafka_topic_03(app):
         msg_value = msg.value()
 
         parentId = msg_value.get("uniqueId")
-        query = msg_value["message"]  # 메시지를 query 변수에 할당
+        # query = msg_value["message"]  # 메시지를 query 변수에 할당
 
-        print("check point 3: " + query)
+        match = re.search(r"relKeyword=([^\,]+)", str(msg_value))
+        if match:
+            query = match.group(1)  # 첫 번째 그룹에 해당하는 값을 쿼리로 사용
+        else:
+            print("Query not found in the message!")
+            continue
+
+        print("check point 1: " + query)
 
         new_uniqueId = str(uuid.uuid4())
 

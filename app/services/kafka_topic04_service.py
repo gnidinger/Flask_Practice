@@ -68,8 +68,6 @@ def kafka_topic_04(app):
 
         query = msg_value["message"]
 
-        print("check point 4: " + query)
-
         try:
             query_json = json.loads(query)
             tabs = query_json.get("tabs", "")
@@ -80,9 +78,6 @@ def kafka_topic_04(app):
             if tabs:
                 tabs = tabs.split(", ")  # 탭을 쉼표로 구분하여 리스트로 만듭니다.
                 for tab in tabs:
-                    print("check point 5: " + tab)
-                    new_uniqueId = str(uuid.uuid4())
-
                     try:
                         result_view_blog = main(tab.strip())  # 각 탭을 공백 제거 후 호출
 
@@ -95,15 +90,16 @@ def kafka_topic_04(app):
                                     continue
                                 filtered_results.append(response)
 
-                            if filtered_results:  # 결과가 빈 리스트가 아니면 Kafka로 메시지를 전송
-                                result_view_blog_str = json.dumps(
-                                    [response.to_dict() for response in filtered_results]
-                                )
+                            for response in filtered_results:  # 각각의 결과를 별도의 메시지로 처리
+                                new_uniqueId = str(uuid.uuid4())  # 각 response마다 새로운 UUID 생성
 
+                                result_view_blog_dict = response.to_dict()
                                 new_message = {
                                     "parentId": parentId,
                                     "uniqueId": new_uniqueId,
-                                    "message": result_view_blog_str,
+                                    "message": json.dumps(
+                                        result_view_blog_dict, ensure_ascii=False
+                                    ),
                                 }
 
                                 producer.produce(
