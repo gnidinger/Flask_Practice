@@ -102,4 +102,4 @@ def kafka_topic_03(app):
 
 
 if __name__ == "__main__":
-    kafka_topic_02()
+    kafka_topic_03()

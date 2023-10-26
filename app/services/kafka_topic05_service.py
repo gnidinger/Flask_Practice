@@ -83,18 +83,22 @@ def kafka_topic_05(app):
                 # main 함수를 실행하고 결과를 받음
                 result_tabs = main(blogId)
 
-                # 결과가 빈 배열이라면 무시하고 계속
-                if len(result_tabs) == 0:
-                    continue
+                # 결과에서 visitorCount 값을 숫자로 파싱
+                visitor_counts = [int(visitor_info["visitorCount"]) for visitor_info in result_tabs]
 
-                # 결과를 JSON 문자열로 변환
-                result_tabs_json = json.dumps(result_tabs, ensure_ascii=False)
+                # visitor_counts가 비어있지 않을 경우 평균 계산, 비어있으면 0
+                avg_visitor_count = (
+                    sum(visitor_counts) / len(visitor_counts) if visitor_counts else 0
+                )
+
+                # Avro Schema를 위해 float -> str로 파싱
+                avg_visitor_count_str = str(avg_visitor_count)
 
                 # 새로운 메시지 생성
                 new_message = {
                     "parentId": parentId,
                     "uniqueId": new_uniqueId,
-                    "message": result_tabs_json,
+                    "message": json.dumps({"avgVisitorCount": avg_visitor_count_str}),
                 }
 
                 # 새로운 토픽에 메시지를 produce 함
@@ -106,8 +110,10 @@ def kafka_topic_05(app):
                 )
                 producer.flush()
 
+                producer.flush()
+
     consumer.close()
 
 
 if __name__ == "__main__":
-    kafka_topic_04()
+    kafka_topic_05()

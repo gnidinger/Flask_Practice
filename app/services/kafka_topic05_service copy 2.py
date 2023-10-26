@@ -7,7 +7,7 @@
 # from .naver_visitor_service import main
 
 
-# def kafka_topic_31(app):
+# def kafka_topic_05(app):
 #     consumer_config = {
 #         "bootstrap.servers": "localhost:19092",
 #         "group.id": "copykle-group",
@@ -39,7 +39,7 @@
 #         producer_config, default_key_schema=key_schema, default_value_schema=value_schema
 #     )
 
-#     consumer.subscribe(["topicA31"])
+#     consumer.subscribe(["topicA05"])
 
 #     def delivery_report(err, msg):
 #         if err is not None:
@@ -64,8 +64,14 @@
 #         msg_value = msg.value()
 #         print(f"Received: key={msg_key}, value={msg_value}")
 
-#         message_content = json.loads(msg_value.get("message", "{}"))  # message 필드를 파싱
-#         blogId = message_content.get("blogId")  # message 내의 blogId를 가져옴
+#         # message 필드를 파싱
+#         message_content = msg_value.get("message", {})
+
+#         # message_content가 문자열인지 확인하고 파싱
+#         if isinstance(message_content, str):
+#             message_content = json.loads(message_content)
+
+#         blogId = message_content.get("blogId")  # blogId를 바로 가져옴
 #         publishDate = message_content.get("publishDate")
 #         print(blogId, publishDate)
 
@@ -93,7 +99,10 @@
 
 #                 # 새로운 토픽에 메시지를 produce 함
 #                 producer.produce(
-#                     topic="topicA32", key=new_uniqueId, value=new_message, callback=delivery_report
+#                     topic="topicA06",
+#                     key=new_uniqueId,
+#                     value=new_message,
+#                     callback=delivery_report,
 #                 )
 #                 producer.flush()
 
@@ -101,4 +110,4 @@
 
 
 # if __name__ == "__main__":
-#     kafka_consumer()
+#     kafka_topic_04()
