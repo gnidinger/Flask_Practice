@@ -82,21 +82,22 @@ def kafka_topic_03(app):
             result_tabs = main(query)
 
             if result_tabs is not None:
-                result_tabs_json = json.dumps(result_tabs, ensure_ascii=False)
+                tabs_list = result_tabs["tabs"].split(", ")  # 여기서 tabs 문자열을 리스트로 변환
+                for tab in tabs_list:
+                    new_uniqueId = str(uuid.uuid4())
+                    new_message = {
+                        "parentId": parentId,
+                        "uniqueId": new_uniqueId,
+                        "message": tab,  # 각 tab 값을 사용
+                    }
 
-                new_message = {
-                    "parentId": parentId,
-                    "uniqueId": new_uniqueId,
-                    "message": result_tabs_json,
-                }
-
-                producer.produce(
-                    topic="topicA04",
-                    key=new_uniqueId,
-                    value=new_message,
-                    callback=delivery_report,
-                )
-                producer.flush()
+                    producer.produce(
+                        topic="topicA04",
+                        key=new_uniqueId,
+                        value=new_message,
+                        callback=delivery_report,
+                    )
+                    producer.flush()
 
     consumer.close()
 

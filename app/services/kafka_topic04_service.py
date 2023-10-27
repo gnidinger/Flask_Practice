@@ -65,53 +65,41 @@ def kafka_topic_04(app):
         msg_value = msg.value()
 
         parentId = msg_value.get("uniqueId")
-
         query = msg_value["message"]
 
-        try:
-            query_json = json.loads(query)
-            tabs = query_json.get("tabs", "")
-        except (json.JSONDecodeError, AttributeError):
-            tabs = []  # JSON 디코딩 오류 또는 "tabs" 키가 없는 경우 빈 리스트로 처리
-
         with app.app_context():
-            if tabs:
-                tabs = tabs.split(", ")  # 탭을 쉼표로 구분하여 리스트로 만듭니다.
-                for tab in tabs:
-                    try:
-                        result_view_blog = main(tab.strip())  # 각 탭을 공백 제거 후 호출
+            try:
+                result_view_blog = main(query)  # 단일 쿼리 문자열로 처리
 
-                        filtered_results = []
+                filtered_results = []
 
-                        if result_view_blog:
-                            for response in result_view_blog:
-                                # '?' 문자가 들어있는 블로그 ID는 무시
-                                if "?" in response.blogId:
-                                    continue
-                                filtered_results.append(response)
+                if result_view_blog:
+                    for response in result_view_blog:
+                        # '?' 문자가 들어있는 블로그 ID는 무시
+                        if "?" in response.blogId:
+                            continue
+                        filtered_results.append(response)
 
-                            for response in filtered_results:  # 각각의 결과를 별도의 메시지로 처리
-                                new_uniqueId = str(uuid.uuid4())  # 각 response마다 새로운 UUID 생성
+                    for response in filtered_results:  # 각각의 결과를 별도의 메시지로 처리
+                        new_uniqueId = str(uuid.uuid4())  # 각 response마다 새로운 UUID 생성
 
-                                result_view_blog_dict = response.to_dict()
-                                new_message = {
-                                    "parentId": parentId,
-                                    "uniqueId": new_uniqueId,
-                                    "message": json.dumps(
-                                        result_view_blog_dict, ensure_ascii=False
-                                    ),
-                                }
+                        result_view_blog_dict = response.to_dict()
+                        new_message = {
+                            "parentId": parentId,
+                            "uniqueId": new_uniqueId,
+                            "message": json.dumps(result_view_blog_dict, ensure_ascii=False),
+                        }
 
-                                producer.produce(
-                                    topic="topicA05",
-                                    key=new_uniqueId,
-                                    value=new_message,
-                                    callback=delivery_report,
-                                )
-                    except NoSuchElementException:
-                        print("View-Blog 검색 실패")
-                        # 요소를 찾을 수 없는 경우 그냥 건너뛰기
-                        continue
+                        producer.produce(
+                            topic="topicA05",
+                            key=new_uniqueId,
+                            value=new_message,
+                            callback=delivery_report,
+                        )
+            except NoSuchElementException:
+                print("View-Blog 검색 실패")
+                # 요소를 찾을 수 없는 경우 그냥 건너뛰기
+                continue
         producer.flush()
 
     consumer.close()
